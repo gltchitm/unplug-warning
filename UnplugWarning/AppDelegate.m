@@ -81,8 +81,7 @@ void checkPowerSource(void* context) {
                                         dispatch_async(dispatch_get_main_queue(), ^ {
                                             setTimer(
                                                 5.0,
-                                                (__bridge AppDelegate*)
-                                                context,
+                                                (__bridge AppDelegate*) context,
                                                 @selector(removeNotification)
                                             );
                                         });
