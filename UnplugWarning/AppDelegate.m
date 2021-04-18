@@ -20,7 +20,7 @@
 @implementation AppDelegate
 
 bool showingObnoxiousNotification = false;
-bool deviceUnplugged = false;
+bool showingUnpluggedWarning = false;
 NSTimer* obnoxiousNotificationCloseTimer;
 
 NSTimer* setTimer(NSTimeInterval seconds, id target, SEL selector) {
@@ -49,7 +49,7 @@ void checkPowerSource(void* context) {
     CFStringRef powerSource = IOPSGetProvidingPowerSourceType(snapshot);
     
     if (strcmp(CFStringGetCStringPtr(powerSource, kCFStringEncodingUTF8), kIOPSACPowerValue) != 0) {
-        if (showingObnoxiousNotification || deviceUnplugged) {
+        if (showingObnoxiousNotification || showingUnpluggedWarning) {
             return;
         }
         UNMutableNotificationContent* content = [[UNMutableNotificationContent alloc] init];
@@ -77,7 +77,7 @@ void checkPowerSource(void* context) {
                                     if (error) {
                                         showObnoxiousNotification((__bridge AppDelegate*) context);
                                     } else {
-                                        deviceUnplugged = true;
+                                        showingUnpluggedWarning = true;
                                         dispatch_async(dispatch_get_main_queue(), ^ {
                                             setTimer(
                                                 5.0,
@@ -90,11 +90,12 @@ void checkPowerSource(void* context) {
                         }
                     }];
         }];
-    } else {
-        deviceUnplugged = false;
-        if (showingObnoxiousNotification) {
-            [(__bridge AppDelegate*) context hideObnoxiousNotification];
-        }
+    } else if (showingObnoxiousNotification) {
+        showingObnoxiousNotification = false;
+        [(__bridge AppDelegate*) context hideObnoxiousNotification];
+    } else if (showingUnpluggedWarning) {
+        showingUnpluggedWarning = false;
+        [(__bridge AppDelegate*) context removeNotification];
     }
     CFRelease(snapshot);
 }
