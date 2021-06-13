@@ -13,7 +13,7 @@
 
 @interface AppDelegate ()
 
-@property (strong) IBOutlet NSWindow* window;
+@property (strong) IBOutlet NSWindow *window;
 
 @end
 
@@ -25,26 +25,26 @@ NSTimer* obnoxiousNotificationCloseTimer;
 
 NSTimer* setTimer(NSTimeInterval seconds, id target, SEL selector) {
     return [NSTimer scheduledTimerWithTimeInterval:seconds
-               target:target
-               selector:selector
-               userInfo:nil
-               repeats:FALSE];
+                                            target:target
+                                          selector:selector
+                                          userInfo:nil
+                                           repeats:false];
 }
-void showObnoxiousNotification(AppDelegate* self) {
+void showObnoxiousNotification(AppDelegate *self) {
     dispatch_async(dispatch_get_main_queue(), ^ {
         showingObnoxiousNotification = true;
-        NSWindow* window = [self window];
+        NSWindow *window = [self window];
         NSPoint position;
         NSRect frame = [[NSScreen mainScreen] visibleFrame];
         position.x = frame.origin.x + frame.size.width - [window frame].size.width;
         position.y = frame.origin.y + frame.size.height - [window frame].size.height;
         [window setFrameOrigin:position];
         [window makeKeyAndOrderFront:nil];
-        [window setLevel:NSStatusWindowLevel];
+        [window setLevel:NSScreenSaverWindowLevel];
         obnoxiousNotificationCloseTimer = setTimer(5.0, self, @selector(hideObnoxiousNotification));
     });
 }
-void checkPowerSource(void* context) {
+void checkPowerSource(void *context) {
     CFTypeRef snapshot = IOPSCopyPowerSourcesInfo();
     CFStringRef powerSource = IOPSGetProvidingPowerSourceType(snapshot);
     
@@ -55,33 +55,32 @@ void checkPowerSource(void* context) {
         UNMutableNotificationContent* content = [[UNMutableNotificationContent alloc] init];
         content.title = @"Not Charging";
         content.subtitle = @"Your device is no longer charging.";
-        UNNotificationRequest* request = [UNNotificationRequest
-                                              requestWithIdentifier:@"DeviceUnplugged"
-                                              content:content
-                                              trigger:nil];
+        UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:@"DeviceUnplugged"
+                                                                              content:content
+                                                                              trigger:nil];
         [[UNUserNotificationCenter currentNotificationCenter]
-            getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings* _Nonnull settings) {
+            getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
                 [[UNUserNotificationCenter currentNotificationCenter]
-                    requestAuthorizationWithOptions:UNAuthorizationOptionAlert
-                    completionHandler:^(BOOL granted, NSError* _Nullable error) {
+                   requestAuthorizationWithOptions:UNAuthorizationOptionAlert
+                                 completionHandler:^(BOOL granted, NSError * _Nullable error) {
                         if (
                             (!granted && !showingObnoxiousNotification) ||
                             [settings alertStyle] == UNAlertStyleNone ||
                             error
                         ) {
-                            showObnoxiousNotification((__bridge AppDelegate*) context);
+                            showObnoxiousNotification((__bridge AppDelegate *) context);
                         } else {
                             [[UNUserNotificationCenter currentNotificationCenter]
                                 addNotificationRequest:request
-                                withCompletionHandler:^(NSError* _Nullable error) {
+                                 withCompletionHandler:^(NSError * _Nullable error) {
                                     if (error) {
-                                        showObnoxiousNotification((__bridge AppDelegate*) context);
+                                        showObnoxiousNotification((__bridge AppDelegate *) context);
                                     } else {
                                         showingUnpluggedWarning = true;
                                         dispatch_async(dispatch_get_main_queue(), ^ {
                                             setTimer(
                                                 5.0,
-                                                (__bridge AppDelegate*) context,
+                                                (__bridge AppDelegate *) context,
                                                 @selector(removeNotification)
                                             );
                                         });
@@ -104,7 +103,7 @@ void checkPowerSource(void* context) {
 }
 - (void)removeNotification {
     [[UNUserNotificationCenter currentNotificationCenter]
-        removeDeliveredNotificationsWithIdentifiers:@[@"DeviceUnplugged"]];
+       removeDeliveredNotificationsWithIdentifiers:@[@"DeviceUnplugged"]];
 }
 - (void)hideObnoxiousNotification {
     [obnoxiousNotificationCloseTimer invalidate];
@@ -112,10 +111,10 @@ void checkPowerSource(void* context) {
     showingObnoxiousNotification = false;
 }
 - (BOOL)canBecomeKeyWindow {
-    return FALSE;
+    return false;
 }
-- (void)applicationDidFinishLaunching:(NSNotification*)aNotification {
-    void* context = (__bridge void*) self;
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    void *context = (__bridge void *) self;
     CFRunLoopSourceRef ref = IOPSNotificationCreateRunLoopSource(checkPowerSource, context);
     CFRunLoopAddSource(CFRunLoopGetCurrent(), ref, kCFRunLoopDefaultMode);
     CFRelease(ref);
