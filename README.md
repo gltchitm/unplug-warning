@@ -11,4 +11,4 @@ You cannot disable notifications from UnplugWarning. If you do not grant it noti
 You can kill UnplugWarning by executing `killall UnplugWarning` or by killing it in Activity Monitor.
 
 ## License
-[MIT](https://choosealicense.com/licenses/mit/)
+[MIT](LICENSE)
